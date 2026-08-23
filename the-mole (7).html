@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>THE MOLE — Pass &amp; Play</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#eef3fb;
+    --ink-2:#12142200;
+    --panel:#ffffff;
+    --panel-2:#eaf1fc;
+    --hairline:#d3e0f5;
+    --gold:#2f6fed;
+    --gold-dim:#5b86d6;
+    --red:#e2564a;
+    --red-dim:#ef8a80;
+    --parchment:#17233f;
+    --muted:#6b7690;
+    --font-display:'Fraunces', Georgia, 'Iowan Old Style', serif;
+    --font-body:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 700px 500px at 50% 18%, rgba(47,111,237,0.12), transparent 60%),
+      radial-gradient(ellipse 900px 700px at 50% 100%, rgba(226,86,74,0.10), transparent 60%),
+      var(--ink);
+    color:var(--parchment);
+    font-family:var(--font-body);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    overflow-x:hidden;
+  }
+
+  /* drifting spotlight */
+  body::before{
+    content:'';
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:radial-gradient(circle 480px at var(--sx,50%) var(--sy,30%), rgba(47,111,237,0.07), transparent 65%);
+    animation:drift 14s ease-in-out infinite;
+    z-index:0;
+  }
+  @keyframes drift{
+    0%,100%{ --sx:38%; --sy:22%; }
+    50%{ --sx:62%; --sy:32%; }
+  }
+
+  #app{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:480px;
+  }
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .eyebrow::before, .eyebrow::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--hairline), transparent);
+  }
+
+  h1.title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:44px;
+    letter-spacing:-0.01em;
+    text-align:center;
+    margin:0 0 6px;
+    color:var(--parchment);
+  }
+  h1.title em{
+    font-style:italic;
+    color:var(--gold);
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--muted);
+    font-size:14px;
+    margin:0 0 28px;
+    line-height:1.5;
+  }
+
+  .panel{
+    background:linear-gradient(180deg, #ffffff, var(--panel-2));
+    border:1px solid var(--hairline);
+    border-radius:14px;
+    padding:24px;
+    box-shadow:0 30px 60px -30px rgba(47,111,237,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+
+  /* ---- stepper ---- */
+  .stepper{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:22px;
+    margin-bottom:22px;
+  }
+  .stepper button{
+    width:40px;height:40px;
+    border-radius:50%;
+    border:1px solid var(--hairline);
+    background:var(--panel-2);
+    color:var(--parchment);
+    font-size:18px;
+    font-family:var(--font-mono);
+    cursor:pointer;
+    transition:.15s;
+  }
+  .stepper button:hover{border-color:var(--gold); color:var(--gold);}
+  .stepper .count{
+    font-family:var(--font-display);
+    font-size:36px;
+    min-width:60px;
+    text-align:center;
+    font-weight:600;
+  }
+  .stepper .count span{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:.15em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+
+  label.field-label{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:20px 0 10px;
+  }
+
+  .name-grid{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .name-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .name-row .tag{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--gold-dim);
+    width:34px;
+    flex-shrink:0;
+    text-align:right;
+  }
+  .name-row input{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    padding:10px 12px;
+    color:var(--parchment);
+    font-family:var(--font-body);
+    font-size:14px;
+    outline:none;
+    transition:.15s;
+  }
+  .name-row input:focus{border-color:var(--gold);}
+  .name-row .name-static{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    padding:10px 12px;
+    color:var(--parchment);
+    font-family:var(--font-body);
+    font-size:14px;
+  }
+  .remove-btn{
+    width:32px;height:32px;
+    flex-shrink:0;
+    border-radius:8px;
+    border:1px solid var(--hairline);
+    background:transparent;
+    color:var(--muted);
+    font-size:18px;
+    line-height:1;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .remove-btn:hover{
+    border-color:var(--red);
+    color:var(--red);
+    background:rgba(193,68,60,0.1);
+  }
+
+  .cat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .cat-btn{
+    background:var(--panel-2);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    padding:11px 10px;
+    color:var(--parchment);
+    font-family:var(--font-body);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    text-align:left;
+    transition:.15s;
+  }
+  .cat-btn:hover{border-color:var(--gold-dim);}
+  .cat-btn.active{
+    border-color:var(--gold);
+    background:rgba(47,111,237,0.10);
+    color:var(--gold);
+  }
+  textarea.custom-words{
+    width:100%;
+    margin-top:10px;
+    background:var(--panel-2);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    padding:10px 12px;
+    color:var(--parchment);
+    font-family:var(--font-body);
+    font-size:13px;
+    min-height:64px;
+    resize:vertical;
+    outline:none;
+  }
+  textarea.custom-words:focus{border-color:var(--gold);}
+
+  .btn{
+    width:100%;
+    padding:14px 18px;
+    border-radius:10px;
+    border:none;
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    transition:.15s;
+    letter-spacing:.01em;
+  }
+  .btn-primary{
+    background:linear-gradient(180deg, #5b93f7, var(--gold));
+    color:#ffffff;
+    margin-top:22px;
+    box-shadow:0 10px 24px -10px rgba(47,111,237,0.55);
+  }
+  .btn-primary:hover{filter:brightness(1.07);}
+  .btn-primary:disabled{opacity:.4; cursor:not-allowed; filter:none;}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--hairline);
+    color:var(--parchment);
+  }
+  .btn-ghost:hover{border-color:var(--gold-dim); color:var(--gold);}
+  .error-msg{
+    color:var(--red);
+    font-size:12px;
+    font-family:var(--font-mono);
+    margin-top:10px;
+    text-align:center;
+    min-height:14px;
+  }
+
+  /* ---- interstitial ---- */
+  .interstitial{
+    text-align:center;
+    padding:38px 24px;
+  }
+  .stamp{
+    width:64px;height:64px;
+    border:2px solid var(--gold-dim);
+    border-radius:50%;
+    margin:0 auto 22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--gold-dim);
+    letter-spacing:.05em;
+  }
+  .pass-name{
+    font-family:var(--font-display);
+    font-size:34px;
+    font-weight:700;
+    color:var(--parchment);
+    margin:6px 0 4px;
+  }
+  .pass-sub{
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:26px;
+  }
+
+  /* ---- flip card ---- */
+  .card-scene{
+    perspective:1400px;
+    height:400px;
+    margin:0 auto 20px;
+  }
+  .card{
+    position:relative;
+    width:100%;
+    height:100%;
+    transform-style:preserve-3d;
+    transition:transform .6s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{ transform:rotateY(180deg); }
+  .card-face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border-radius:14px;
+    border:1px solid var(--hairline);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    text-align:center;
+  }
+  .card-front{
+    background:
+      repeating-linear-gradient(135deg, rgba(47,111,237,0.03) 0 2px, transparent 2px 14px),
+      linear-gradient(180deg, #f3f7fe, #ffffff);
+    box-shadow:inset 0 0 0 1px rgba(47,111,237,0.18), 0 20px 40px -18px rgba(47,111,237,0.25);
+  }
+  .card-front .agent-no{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    color:var(--gold-dim);
+    text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .card-front .agent-name{
+    font-family:var(--font-display);
+    font-size:30px;
+    font-weight:700;
+  }
+  .card-front .tap-hint{
+    margin-top:22px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:.5;} 50%{opacity:1;} }
+
+  .card-back{
+    transform:rotateY(180deg);
+    background:linear-gradient(180deg, #eaf1ff, #ffffff);
+    box-shadow:inset 0 0 0 1px rgba(47,111,237,0.22), 0 20px 40px -18px rgba(47,111,237,0.25);
+  }
+  .card-back.is-mole{
+    background:linear-gradient(180deg, #fdeceb, #ffffff);
+    box-shadow:inset 0 0 0 1px rgba(226,86,74,0.35), 0 20px 40px -18px rgba(226,86,74,0.25);
+  }
+  .card-back .label{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:14px;
+  }
+  .card-back.is-mole .label{ color:var(--red); }
+  .card-back .word{
+    font-family:var(--font-display);
+    font-size:32px;
+    font-weight:700;
+    color:var(--parchment);
+  }
+  .card-back.is-mole .word{
+    color:var(--red);
+    font-size:24px;
+    line-height:1.3;
+  }
+  .card-back .hint2{
+    margin-top:16px;
+    font-size:12px;
+    color:var(--muted);
+    max-width:220px;
+  }
+
+  .progress-track{
+    height:5px;
+    background:var(--hairline);
+    border-radius:3px;
+    overflow:hidden;
+    margin-bottom:18px;
+  }
+  .progress-fill{
+    height:100%;
+    width:100%;
+    transform-origin:left;
+    background:linear-gradient(90deg, #3b6fd4, #57c2ea, #8fe3ff, #57c2ea, #3b6fd4);
+    background-size:300% 100%;
+    box-shadow:0 0 10px rgba(87,194,234,0.6);
+  }
+  .progress-fill.running{
+    animation:shrink linear forwards, glide 1.4s linear infinite;
+  }
+  @keyframes glide{
+    0%{ background-position:0% 0%; }
+    100%{ background-position:100% 0%; }
+  }
+  @keyframes shrink{ from{transform:scaleX(1);} to{transform:scaleX(0);} }
+
+  .dots{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:22px;
+  }
+  .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--hairline);
+  }
+  .dot.done{background:var(--gold-dim);}
+  .dot.current{background:var(--gold);}
+
+  /* ---- voting ---- */
+  .vote-grid{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .vote-btn{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 16px;
+    background:var(--panel-2);
+    border:1px solid var(--hairline);
+    border-radius:10px;
+    color:var(--parchment);
+    font-family:var(--font-body);
+    font-weight:500;
+    font-size:15px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .vote-btn:hover{border-color:var(--gold-dim);}
+  .vote-btn.selected{
+    border-color:var(--gold);
+    background:rgba(47,111,237,0.10);
+  }
+  .vote-btn .check{
+    color:var(--gold);
+    font-family:var(--font-mono);
+    opacity:0;
+  }
+  .vote-btn.selected .check{opacity:1;}
+
+  /* ---- results ---- */
+  .result-row{
+    margin-bottom:14px;
+  }
+  .result-row .rr-top{
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--font-mono);
+    font-size:12px;
+    margin-bottom:6px;
+    color:var(--muted);
+  }
+  .result-row.top .rr-top{ color:var(--gold); }
+  .bar-track{
+    height:10px;
+    border-radius:6px;
+    background:var(--panel-2);
+    overflow:hidden;
+    border:1px solid var(--hairline);
+  }
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--gold-dim), var(--gold));
+    border-radius:6px;
+    transition:width .6s ease;
+  }
+
+  .reveal-box{
+    text-align:center;
+    padding:22px;
+    border-radius:12px;
+    border:1px dashed var(--hairline);
+    margin-top:22px;
+  }
+  .reveal-box .word-big{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:28px;
+    color:var(--red);
+    margin:8px 0;
+  }
+  .reveal-box .secret-word{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:20px;
+    color:var(--gold);
+  }
+
+  .btn-row{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+  }
+  .btn-row .btn{ margin-top:0; }
+
+  @media (max-width:420px){
+    h1.title{font-size:36px;}
+    .card-scene{height:360px;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CATEGORIES = {
+    "Food": ["Pizza","Sushi","Tacos","Croissant","Pasta","Burger","Ramen","Paella","Falafel","Dumplings","Curry","Pancakes","BBQ Ribs","Ice Cream","Bagel","Kimchi","Risotto","Ceviche","Waffles","Hummus"],
+    "Animals": ["Elephant","Penguin","Octopus","Kangaroo","Giraffe","Dolphin","Chameleon","Peacock","Sloth","Hedgehog","Flamingo","Otter","Koala","Platypus","Owl","Cheetah","Walrus","Toucan","Armadillo","Narwhal"],
+    "Movies": ["Titanic","Inception","Jaws","Frozen","Gladiator","Jurassic Park","The Matrix","Rocky","Casablanca","Avatar","Psycho","The Godfather","Coco","Shrek","Alien","Ghostbusters","Grease","Whiplash"],
+    "Countries": ["Japan","Brazil","Egypt","Canada","Morocco","Italy","Iceland","Kenya","Thailand","Peru","Norway","India","Greece","Mexico","Portugal","Vietnam","Scotland","Chile","Turkey","Finland"],
+    "Objects": ["Umbrella","Telescope","Backpack","Candle","Compass","Typewriter","Lantern","Anchor","Hourglass","Violin","Kettle","Binoculars","Suitcase","Mirror","Ladder","Camera","Globe","Trophy","Envelope","Fan"],
+    "Sports": ["Soccer","Tennis","Surfing","Boxing","Archery","Curling","Rugby","Golf","Skiing","Fencing","Volleyball","Cricket","Bowling","Rowing","Badminton","Judo","Cycling","Diving","Hockey","Wrestling"],
+    "Moroccan Culture": ["Tagine","Couscous","Mint Tea","Djellaba","Kaftan","Babouche","Hammam","Henna","Harira","Msemen","Sfenj","Khobz","Argan Oil","Souk","Zellige","Gnawa Music","Fantasia","Berber Rug","Eid Sheep","Ramadan Iftar","Friday Couscous","Oud","Bendir","Hijab","Amazigh","King Mohammed VI","Crown Prince Moulay Hassan","Princess Lalla Salma","Achraf Hakimi","Hakim Ziyech","Youssef En-Nesyri","Saad Lamjarred","Walid Regragui"]
+  };
+  var CATEGORY_NAMES = Object.keys(CATEGORIES);
+
+  var REVEAL_SECONDS = 5;
+
+  var app = document.getElementById('app');
+
+  var STATIC_NAMES = ["Mehdi","Manal","Wissal","Taha","Abdo","Aya","Ibtihal","Zayneb"];
+
+  var state = {
+    phase: 'setup',
+    count: STATIC_NAMES.length,
+    names: STATIC_NAMES.slice(),
+    activeNames: STATIC_NAMES.slice(),
+    category: "Food",
+    customWords: "",
+    imposterIndex: -1,
+    secretWord: "",
+    currentIndex: 0,
+    revealed: false,
+    revealTimer: null,
+    votes: [],
+    currentVoter: 0,
+    selectedVote: null,
+    errorMsg: ""
+  };
+
+  function esc(s){
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function wordPool(){
+    if(state.category === "Custom"){
+      return state.customWords.split(",").map(function(w){return w.trim();}).filter(Boolean);
+    }
+    if(state.category === "Random Mix"){
+      var all = [];
+      CATEGORY_NAMES.forEach(function(c){ all = all.concat(CATEGORIES[c]); });
+      return all;
+    }
+    return CATEGORIES[state.category] || [];
+  }
+
+  function render(){
+    if(state.phase === 'setup') return renderSetup();
+    if(state.phase === 'interstitial') return renderInterstitial();
+    if(state.phase === 'card') return renderCard();
+    if(state.phase === 'vote-interstitial') return renderVoteInterstitial();
+    if(state.phase === 'vote') return renderVote();
+    if(state.phase === 'results') return renderResults();
+  }
+
+  // ---------------- SETUP ----------------
+  function renderSetup(){
+    var nameRows = state.activeNames.map(function(n, i){
+      return '<div class="name-row">' +
+        '<span class="tag">' + String(i+1).padStart(2,'0') + '</span>' +
+        '<div class="name-static">'+esc(n)+'</div>' +
+        '<button class="remove-btn" data-i="'+i+'" title="Remove '+esc(n)+'">&times;</button>' +
+        '</div>';
+    }).join('');
+
+    var catButtons = CATEGORY_NAMES.concat(["Random Mix","Custom"]).map(function(c){
+      var active = state.category === c ? ' active' : '';
+      return '<button class="cat-btn'+active+'" data-cat="'+esc(c)+'">'+esc(c)+'</button>';
+    }).join('');
+
+    var customBox = state.category === "Custom"
+      ? '<textarea class="custom-words" placeholder="secret words, separated by commas (need at least 3)">'+esc(state.customWords)+'</textarea>'
+      : '';
+
+    app.innerHTML =
+      '<div class="eyebrow">Pass &amp; Play &middot; Social Deduction</div>' +
+      '<h1 class="title">THE <em>MOLE</em></h1>' +
+      '<p class="subtitle">One card among you hides the truth. Everyone else sees the word.<br>The Mole sees nothing but doubt.</p>' +
+      '<div class="panel">' +
+        '<label class="field-label">Players ('+state.activeNames.length+')</label>' +
+        '<div class="name-grid">'+nameRows+'</div>' +
+        '<label class="field-label">Category</label>' +
+        '<div class="cat-grid">'+catButtons+'</div>' +
+        customBox +
+        '<button class="btn btn-primary" id="startBtn">Deal the cards</button>' +
+        '<div class="error-msg">'+esc(state.errorMsg)+'</div>' +
+      '</div>';
+
+    document.querySelectorAll('.remove-btn').forEach(function(btn){
+      btn.onclick = function(){
+        if(state.activeNames.length <= 3){
+          state.errorMsg = "You need at least 3 players.";
+          render();
+          return;
+        }
+        state.activeNames.splice(+btn.dataset.i, 1);
+        state.errorMsg = "";
+        render();
+      };
+    });
+    document.querySelectorAll('.cat-btn').forEach(function(btn){
+      btn.onclick = function(){ state.category = btn.dataset.cat; render(); };
+    });
+    var ta = document.querySelector('.custom-words');
+    if(ta){ ta.oninput = function(){ state.customWords = ta.value; }; }
+
+    document.getElementById('startBtn').onclick = startGame;
+  }
+
+  function startGame(){
+    var pool = wordPool();
+    if(state.category === "Custom" && pool.length < 3){
+      state.errorMsg = "Add at least 3 custom words, separated by commas.";
+      render();
+      return;
+    }
+    state.names = state.activeNames.slice();
+    state.count = state.names.length;
+    state.secretWord = pool[Math.floor(Math.random() * pool.length)];
+    state.imposterIndex = Math.floor(Math.random() * state.count);
+    state.currentIndex = 0;
+    state.revealed = false;
+    state.errorMsg = "";
+    state.votes = new Array(state.count).fill(-1);
+    state.currentVoter = 0;
+    state.selectedVote = null;
+    state.phase = 'interstitial';
+    render();
+  }
+
+  // ---------------- INTERSTITIAL (reveal phase) ----------------
+  function renderInterstitial(){
+    var name = state.names[state.currentIndex];
+    var num = String(state.currentIndex + 1).padStart(2,'0');
+    app.innerHTML =
+      '<div class="eyebrow">Card '+(state.currentIndex+1)+' of '+state.count+'</div>' +
+      '<div class="panel interstitial">' +
+        '<div class="stamp">'+num+'</div>' +
+        '<div class="pass-sub">Pass the device to</div>' +
+        '<div class="pass-name">'+esc(name)+'</div>' +
+        '<div class="pass-sub">Make sure no one else can see the screen.</div>' +
+        '<button class="btn btn-primary" id="revealBtn">I am '+esc(name)+' — show my card</button>' +
+      '</div>';
+    document.getElementById('revealBtn').onclick = function(){
+      state.revealed = false;
+      state.phase = 'card';
+      render();
+    };
+  }
+
+  // ---------------- CARD ----------------
+  function renderCard(){
+    var idx = state.currentIndex;
+    var name = state.names[idx];
+    var isMole = idx === state.imposterIndex;
+    var num = String(idx + 1).padStart(2,'0');
+
+    var dots = state.names.map(function(_, i){
+      var cls = i < idx ? 'done' : (i === idx ? 'current' : '');
+      return '<div class="dot '+cls+'"></div>';
+    }).join('');
+
+    app.innerHTML =
+      '<div class="eyebrow">Card '+(idx+1)+' of '+state.count+'</div>' +
+      '<div class="panel">' +
+        '<div class="progress-track"><div class="progress-fill" id="progFill"></div></div>' +
+        '<div class="card-scene"><div class="card" id="theCard">' +
+          '<div class="card-face card-front">' +
+            '<div class="agent-no">Agent '+num+'</div>' +
+            '<div class="agent-name">'+esc(name)+'</div>' +
+            '<div class="tap-hint">Tap card to reveal</div>' +
+          '</div>' +
+          '<div class="card-face card-back'+(isMole ? ' is-mole' : '')+'">' +
+            (isMole
+              ? '<div class="label">Classified</div><div class="word">YOU ARE<br>THE MOLE</div><div class="hint2">You don\'t know the word. Blend in, listen close, and don\'t get caught.</div>'
+              : '<div class="label">The secret word is</div><div class="word">'+esc(state.secretWord)+'</div><div class="hint2">Remember it. Don\'t say it out loud.</div>') +
+          '</div>' +
+        '</div></div>' +
+        '<div class="dots">'+dots+'</div>' +
+      '</div>';
+
+    var cardEl = document.getElementById('theCard');
+    cardEl.onclick = function(){
+      if(!state.revealed){
+        flipOpen();
+      } else {
+        clearTimeout(state.revealTimer);
+        advanceFromCard();
+      }
+    };
+  }
+
+  function flipOpen(){
+    state.revealed = true;
+    document.getElementById('theCard').classList.add('flipped');
+    var fill = document.getElementById('progFill');
+    fill.classList.add('running');
+    fill.style.animationDuration = REVEAL_SECONDS + 's';
+    state.revealTimer = setTimeout(function(){
+      advanceFromCard();
+    }, REVEAL_SECONDS * 1000);
+  }
+
+  function advanceFromCard(){
+    if(state.currentIndex < state.count - 1){
+      state.currentIndex++;
+      state.phase = 'interstitial';
+    } else {
+      state.currentVoter = 0;
+      state.selectedVote = null;
+      state.phase = 'vote-interstitial';
+    }
+    render();
+  }
+
+  // ---------------- VOTING ----------------
+  function renderVoteInterstitial(){
+    var name = state.names[state.currentVoter];
+    var num = String(state.currentVoter + 1).padStart(2,'0');
+    app.innerHTML =
+      '<div class="eyebrow">Vote '+(state.currentVoter+1)+' of '+state.count+'</div>' +
+      '<div class="panel interstitial">' +
+        '<div class="stamp">'+num+'</div>' +
+        '<div class="pass-sub">Pass the device to</div>' +
+        '<div class="pass-name">'+esc(name)+'</div>' +
+        '<div class="pass-sub">Time to name who you think the Mole is.</div>' +
+        '<button class="btn btn-primary" id="voteReadyBtn">I am '+esc(name)+' — cast my vote</button>' +
+      '</div>';
+    document.getElementById('voteReadyBtn').onclick = function(){
+      state.selectedVote = null;
+      state.phase = 'vote';
+      render();
+    };
+  }
+
+  function renderVote(){
+    var voter = state.currentVoter;
+    var rows = state.names.map(function(n, i){
+      var selected = state.selectedVote === i ? ' selected' : '';
+      return '<button class="vote-btn'+selected+'" data-i="'+i+'">' +
+        '<span>'+esc(n)+(i === voter ? ' (you)' : '')+'</span><span class="check">&#10003;</span>' +
+        '</button>';
+    }).join('');
+
+    app.innerHTML =
+      '<div class="eyebrow">'+esc(state.names[voter])+' — who is the Mole?</div>' +
+      '<div class="panel">' +
+        '<div class="vote-grid">'+rows+'</div>' +
+        '<button class="btn btn-primary" id="confirmVoteBtn" disabled>Confirm vote</button>' +
+      '</div>';
+
+    var confirmBtn = document.getElementById('confirmVoteBtn');
+    document.querySelectorAll('.vote-btn').forEach(function(btn){
+      btn.onclick = function(){
+        state.selectedVote = +btn.dataset.i;
+        confirmBtn.disabled = false;
+        render();
+        document.getElementById('confirmVoteBtn').disabled = false;
+      };
+    });
+    confirmBtn.onclick = function(){
+      if(state.selectedVote === null) return;
+      state.votes[voter] = state.selectedVote;
+      if(state.currentVoter < state.count - 1){
+        state.currentVoter++;
+        state.phase = 'vote-interstitial';
+      } else {
+        state.phase = 'results';
+      }
+      render();
+    };
+  }
+
+  // ---------------- RESULTS ----------------
+  function renderResults(){
+    var tally = new Array(state.count).fill(0);
+    state.votes.forEach(function(v){ if(v >= 0) tally[v]++; });
+    var maxVotes = Math.max.apply(null, tally);
+
+    var order = state.names.map(function(_, i){ return i; })
+      .sort(function(a,b){ return tally[b] - tally[a]; });
+
+    var rows = order.map(function(i){
+      var pct = maxVotes > 0 ? Math.round((tally[i] / maxVotes) * 100) : 0;
+      var isTop = tally[i] === maxVotes && maxVotes > 0;
+      return '<div class="result-row'+(isTop ? ' top' : '')+'">' +
+        '<div class="rr-top"><span>'+esc(state.names[i])+'</span><span>'+tally[i]+' vote'+(tally[i]===1?'':'s')+'</span></div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div>' +
+        '</div>';
+    }).join('');
+
+    app.innerHTML =
+      '<div class="eyebrow">Final Tally</div>' +
+      '<div class="panel">' +
+        rows +
+        '<div class="reveal-box" id="revealBox">' +
+          '<div class="pass-sub">Ready to expose the truth?</div>' +
+          '<button class="btn btn-ghost" id="revealMoleBtn">Reveal the Mole</button>' +
+        '</div>' +
+        '<div class="btn-row">' +
+          '<button class="btn btn-ghost" id="playAgainBtn">Play again</button>' +
+          '<button class="btn btn-ghost" id="newGameBtn">New game</button>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('revealMoleBtn').onclick = function(){
+      var box = document.getElementById('revealBox');
+      var correctlyCaught = tally[state.imposterIndex] === maxVotes && maxVotes > 0;
+      box.innerHTML =
+        '<div class="pass-sub">The Mole was</div>' +
+        '<div class="word-big">'+esc(state.names[state.imposterIndex])+'</div>' +
+        '<div class="pass-sub" style="margin-top:14px;">The secret word was</div>' +
+        '<div class="secret-word">'+esc(state.secretWord)+'</div>' +
+        '<div class="pass-sub" style="margin-top:16px;">'+(correctlyCaught ? 'The table caught the Mole. Well played.' : 'The Mole slipped away undetected.')+'</div>';
+    };
+
+    document.getElementById('playAgainBtn').onclick = function(){
+      var pool = wordPool();
+      state.secretWord = pool[Math.floor(Math.random() * pool.length)];
+      state.imposterIndex = Math.floor(Math.random() * state.count);
+      state.currentIndex = 0;
+      state.votes = new Array(state.count).fill(-1);
+      state.currentVoter = 0;
+      state.selectedVote = null;
+      state.phase = 'interstitial';
+      render();
+    };
+
+    document.getElementById('newGameBtn').onclick = function(){
+      state.phase = 'setup';
+      state.activeNames = STATIC_NAMES.slice();
+      state.errorMsg = "";
+      render();
+    };
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
